@@ -53,6 +53,10 @@ end
 desc "Create #{PKG_NAME+'-'+PKG_VERSION+'.gem'} in #{PKG_INSTALL_DIR}" 
 task :ruby do |t|
   #Gem::Builder.new(spec_client).build
+  unless File.directory? PKG_INSTALL_DIR
+    require 'fileutils'
+    FileUtils.mkdir_p PKG_INSTALL_DIR
+  end
   Gem::Package.build(spec)
   `mv #{PKG_NAME+'-'+PKG_VERSION+'.gem'} #{PKG_INSTALL_DIR}`
 end
