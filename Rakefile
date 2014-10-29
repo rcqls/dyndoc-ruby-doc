@@ -15,7 +15,6 @@ spec = Gem::Specification.new do |s|
     s.version = PKG_VERSION
     s.licenses = ['MIT', 'GPL-2']
     s.requirements << 'none'
-    s.add_dependency("dyndoc-ruby-core","~>1.0",">=1.0.0")
     s.require_path = 'lib'
     s.files = PKG_FILES.to_a
     s.description = <<-EOF
