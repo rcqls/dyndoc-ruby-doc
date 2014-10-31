@@ -95,7 +95,7 @@ module Dyndoc
 
     include DynConfig
 
-    attr_accessor :tmpl_mngr, :docs, :cfg, :basename, :basename_orig, :content
+    attr_accessor :tmpl_mngr, :docs, :cfg, :basename, :dirname, :basename_orig, :dirname_orig, :content
 
     def initialize(name) #docs is a hash containing all the files
       @name=name
@@ -103,7 +103,7 @@ module Dyndoc
       @cfg=@@cfg.dup
       read_cfg(@name)
       ## the template manager
-      @tmpl_mngr = Dyndoc::Ruby::TemplateManager.new(@cfg)
+      Dyndoc.tmpl_mngr=@tmpl_mngr = Dyndoc::Ruby::TemplateManager.new(@cfg)
       ## the documents
       @docs={}
       make_doc_list
@@ -163,7 +163,7 @@ module Dyndoc
       code="Dyndoc::TexDoc" unless code
       if code and code.is_a? String
           code="{\n"+code+"\n}" if code=~/\A\s*\:/m #to avoid at the beginning { and at the end }!
-          p [code,Object.class_eval(code)]
+          ##p [code,Object.class_eval(code)]
           return Object.class_eval(code)
       end
       return nil
@@ -188,13 +188,13 @@ module Dyndoc
     # document basename from template filename
     def basename_tmpl
       mode=Dyndoc.guess_mode(@cfg[:filename_tmpl])
-      ##puts "mode";p mode;p Dyndoc.tmplExt[mode]
+      ##p ["mode",mode,Dyndoc.tmplExt[mode]]
       if mode
         name,ext=@cfg[:filename_tmpl].scan(/^(.*)(?:#{Dyndoc.tmplExt[mode].join("|")})$/).flatten.compact
       else
         name,ext=@cfg[:filename_tmpl].scan(/^(.*)(?:_tmpl(\..*)|(\.dyn))$/).flatten.compact
       end
-      #p name
+      #p [:name,@cfg[:filename_tmpl],name]
       name
     end
 
@@ -255,6 +255,7 @@ module Dyndoc
 
     def initialize(key_doc,tmpl_doc)
       @tmpl_doc=tmpl_doc #to be aware of the cfg of tmpl_doc!
+      ##p [:tmpl_doc,@tmpl_doc]
       @cfg=Document.cfg
       @content=""
       @cfg[:key_doc]=key_doc #just to record the key of this document
@@ -286,7 +287,9 @@ module Dyndoc
 #p @tmpl_doc.basename_orig
 #p @cfg[:append_doc]
 #p Dyndoc.docExt(@cfg[:format_doc])
-      @cfg[:filename_doc]=@tmpl_doc.basename_orig+@tmpl_doc.cfg[:append]+@cfg[:append_doc]+Dyndoc.docExt(@cfg[:format_doc])
+      @filename=@cfg[:filename_doc]=@tmpl_doc.basename_orig+@tmpl_doc.cfg[:append]+@cfg[:append_doc]+Dyndoc.docExt(@cfg[:format_doc])
+      @dirname = @tmpl_doc.dirname_orig
+      ##p [:filename_completion,@dirname, @filename ]
     end
 
 # start ##################################################
@@ -310,20 +313,19 @@ module Dyndoc
 
     def open_log
       #p [@tmpl_doc.basename_orig,@tmpl_doc.basename]
-      logfile=File.join(@dirname,@tmpl_doc.basename_orig+".dyn_log")
-      #p logfile
-      $dyn_logger=File.new(logfile,"w")
+      # logfile=File.join(@dirname,@tmpl_doc.basename_orig+".dyn_log")
+      # #p logfile
+      # $dyn_logger=File.new(logfile,"w")
       @cfg[:created_docs] << @basename+".dyn_log"
     end
 
     def close_log
-      $dyn_logger.close
+      $dyn_logger.close if $dyn_logger
     end
 
     def make_prelim
       init_doc
       @cfg[:created_docs]=[]
-      @dirname,@filename=File.split(File.expand_path @cfg[:filename_doc])
       #update @dirname if @cfg[:dirname_doc] or @tmpl_doc.cfg[:dirname_docs] is fixed!
       if @dirname.empty? and @cfg[:dirname_doc] and !@cfg[:dirname_doc].empty? and File.exist? @cfg[:dirname_doc]
 	      @dirname= @cfg[:dirname_doc]
@@ -541,6 +543,7 @@ module Dyndoc
 	      make_odt_ressources
 	      @ar.close
 	    else
+        p [:cfg,Dir.pwd,@dirname] 
 	      print "\nsave content in #{@cfg[:filename_doc]} or #{@filename}"
 	      File.open(@cfg[:filename_doc],"w") do |f|
 	        f << @content
@@ -601,7 +604,7 @@ module Dyndoc
           #   f << out[-4...-1]
           # end
           #p out[-4...-1]
-          $dyn_logger.write("ERROR pdflatex: "+out[-4...-1].to_s+"\n")
+          $dyn_logger.write("ERROR pdflatex: "+out[-4...-1].to_s+"\n") if $dyn_logger
           @cfg[:created_docs] << @basename+".log"
         end
       else 
