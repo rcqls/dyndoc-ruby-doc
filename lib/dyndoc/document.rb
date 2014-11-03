@@ -151,8 +151,7 @@ module Dyndoc
       #otherwise it is the default version!
       append_cfg(cfg_dyn) if cfg_dyn
       #read the optional cfg
-      #p [:cfg_dyn_readCurDyn,Dyndoc.cfg_dyn[:doc_list]]
-      
+      read_cmdline     
     end
 
     def cfg_dyn_from(tmpl)
@@ -167,6 +166,13 @@ module Dyndoc
           return Object.class_eval(code)
       end
       return nil
+    end
+
+    def read_cmdline
+      cfg_cmdline={}
+      cfg_cmdline[:doc_list]=Dyndoc.cfg_dyn[:doc_list] unless Dyndoc.cfg_dyn[:doc_list].empty?
+      cfg_cmdline[:cmd]=Dyndoc.cfg_dyn[:cmd_doc] unless Dyndoc.cfg_dyn[:cmd_doc].empty?
+      append_cfg(cfg_cmdline)
     end
 
     def make_doc_list
@@ -209,7 +215,7 @@ module Dyndoc
     end
 
     def make_all
-#puts "@doc_list"; p @doc_list
+      ##puts "@doc_list"; p @doc_list
       @doc_list.each do |kdoc|
 	      @docs[kdoc].make_all
       end
@@ -543,7 +549,7 @@ module Dyndoc
 	      make_odt_ressources
 	      @ar.close
 	    else
-        p [:cfg,Dir.pwd,@dirname] 
+        ##p [:cfg,Dir.pwd,@dirname] 
 	      print "\nsave content in #{@cfg[:filename_doc]} or #{@filename}"
 	      File.open(@cfg[:filename_doc],"w") do |f|
 	        f << @content
