@@ -307,7 +307,7 @@ module Dyndoc
       make_prelim
       cd_new
       open_log
-      make_content
+      make_content if @cfg[:cmd].include? :make_content
       @content=make_ttm if @cfg[:format_doc]==:ttm
 #puts "make_all";p @cfg[:cmd]
       make_save if @cfg[:cmd].include? :save
