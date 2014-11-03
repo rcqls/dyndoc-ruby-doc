@@ -215,6 +215,10 @@ module Dyndoc
     end
 
     def make_all
+      if @cfg[:cmd].include? :list
+        puts "document list: "+@cfg[:docs].keys.join(", ")
+        return
+      end
       ##puts "@doc_list"; p @doc_list
       @doc_list.each do |kdoc|
 	      @docs[kdoc].make_all
