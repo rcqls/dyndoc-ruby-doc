@@ -1,0 +1,3 @@
+[#rb>]for doc in ["toto","titi"] do
+	{#>]elt :{doc}[#nl][#}
+end
