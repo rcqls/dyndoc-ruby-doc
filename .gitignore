@@ -1,2 +1,4 @@
 *.log
 *.aux
+test/*.pdf
+test/*.tex
