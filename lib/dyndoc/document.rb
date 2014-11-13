@@ -172,6 +172,7 @@ module Dyndoc
       cfg_cmdline={}
       cfg_cmdline[:doc_list]=Dyndoc.cfg_dyn[:doc_list] unless Dyndoc.cfg_dyn[:doc_list].empty?
       cfg_cmdline[:cmd]=Dyndoc.cfg_dyn[:cmd_doc] unless Dyndoc.cfg_dyn[:cmd_doc].empty?
+      cfg_cmdline[:model_doc]=Dyndoc.cfg_dyn[:model_doc] unless Dyndoc.cfg_dyn[:model_doc].empty?
       append_cfg(cfg_cmdline)
     end
 
