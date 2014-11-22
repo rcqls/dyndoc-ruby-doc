@@ -367,45 +367,46 @@ module Dyndoc
           @basename = @basename[0..(@basename.length-$1.length-$2.length-3)] unless pandoc_cmd
         end
         #p @basename
-        @cfg[:cmd] << :pandoc
+        @cfg[:cmd] << :make_content << :pandoc
         @cfg[:format_doc]=@cfg[:mode_doc]=$1.to_sym
         @cfg[:format_output]=$2.to_sym
          
         if @cfg[:cmd_pandoc_options].empty? or pandoc_cmd
-          #p [@cfg[:format_doc].to_s , @cfg[:format_output].to_s]
+          p [@cfg[:format_doc].to_s , @cfg[:format_output].to_s]
           case @cfg[:format_doc].to_s + "2" + @cfg[:format_output].to_s
           when "md2odt"
-            @cfg[:cmd] = [:pandoc]
+            @cfg[:cmd] = [:make_content,:pandoc]
             @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".odt"
           when "md2docx"
-            @cfg[:cmd] = [:pandoc]
+            @cfg[:cmd] = [:make_content,:pandoc]
             @cfg[:model_doc]=nil
             @cfg[:cmd_pandoc_options]=["-s","-S"]
             @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".docx"
           when "tex2docx"
-            @cfg[:cmd] = [:save,:pandoc]
+            @cfg[:cmd] = [:make_content,:save,:pandoc]
             @cfg[:pandoc_file_input]=@filename
             @cfg[:model_doc]=nil
             @cfg[:cmd_pandoc_options]=["-s"]
             @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".docx"
           when "md2beamer"
-            @cfg[:cmd] = [:pandoc]
+            @cfg[:cmd] = [:make_content,:pandoc]
             @cfg[:cmd_pandoc_options]=["-t","beamer"]
             @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".pdf"
           when "md2dzslides"
-            @cfg[:cmd] = [:pandoc]
+            @cfg[:cmd] = [:make_content,:pandoc]
             @cfg[:cmd_pandoc_options]=["-s","--mathml","-i","-t","dzslides"]
             @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".html"
           when "md2slidy"
-            @cfg[:cmd] = [:pandoc]
+            @cfg[:cmd] = [:make_content,:pandoc]
             @cfg[:cmd_pandoc_options]=["-s","--webtex","-i","-t","slidy"]
             @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".html"  
           when "md2s5"
-            @cfg[:cmd] = [:pandoc]
+            @cfg[:cmd] = [:make_content,:pandoc]
             @cfg[:cmd_pandoc_options]=["-s","--self-contained","--webtex","-i","-t","s5"]
             @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".html"
+            p [:cfg,@cfg]
           when "md2slideous"
-            @cfg[:cmd] = [:pandoc]
+            @cfg[:cmd] = [:make_content,:pandoc]
             @cfg[:cmd_pandoc_options]=["-s","--mathjax","-i","-t","slideous"]
             @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".html"
           end
@@ -473,6 +474,7 @@ module Dyndoc
       if true #@tmpl_doc.cfg[:debug]
         @tmpl_doc.tmpl_mngr.echo=0
         @tmpl_doc.tmpl_mngr.doc=self
+        ## p [:make_content,@tmpl_doc.content]
         @content=@tmpl_doc.tmpl_mngr.output(@tmpl_doc.content)
         print "\nmake content for #{@basename} in #{@dirname} -> ok\n"
       else
@@ -530,11 +532,13 @@ module Dyndoc
 
     def make_pandoc
       opts=@cfg[:cmd_pandoc_options]+["-o",@cfg[:pandoc_file_output]]
-      puts "make_pandoc";p @content
+      ## p ["make_pandoc",@content]
       if @cfg[:pandoc_file_input]
         opts << @cfg[:pandoc_file_input]
+        p [:make_pandoc_input, opts.join(" ")]
         Converter.pandoc(nil,opts.join(" "))
       else
+        p [:make_pandoc_content, opts.join(" "),@content]
         Converter.pandoc(@content,opts.join(" "))
       end
       @cfg[:created_docs] << @cfg[:pandoc_file_output]
