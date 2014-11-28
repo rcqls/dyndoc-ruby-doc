@@ -32,7 +32,6 @@ module Dyndoc
     unless SOFTWARE[:pdflatex]
       cmd=`type "pdflatex"`
       SOFTWARE[:pdflatex]=cmd.empty? ? "pdflatex" : cmd.strip.split(" ")[2]
-      SOFTWARE[:pdflatex] = "env TEXINPUTS=#{ENV['TEXINPUTS']}" + (RUBY_PLATFORM=~/mingw32/ ? "; " : " ") + SOFTWARE[:pdflatex] if ENV['TEXINPUTS']
     end
     
     unless SOFTWARE[:pandoc]
@@ -62,7 +61,12 @@ module Dyndoc
   end
 
   def Dyndoc.pdflatex
-    SOFTWARE[:pdflatex]
+    # this has to be initialized each time you need pdflatex since TEXINPUTS could change!
+    if ENV['TEXINPUTS']
+      "env TEXINPUTS=#{ENV['TEXINPUTS']}" + (RUBY_PLATFORM=~/mingw32/ ? "; " : " ") + SOFTWARE[:pdflatex] 
+    else 
+      SOFTWARE[:pdflatex]
+    end
   end
 
   def Dyndoc.R
