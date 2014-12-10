@@ -82,6 +82,7 @@ module Dyndoc
       :doc_list=>[], #list of documents if nonempty
       :cmd=>[], #list of commands if nonempty for every document
       :cmd_pandoc_options => [], #pandoc options
+      :options => {}, # added for example to compile twice latex
       :dtag=>:dtag,
       :dtags=>[:dtag],
       :raw_mode=>false,
@@ -175,6 +176,7 @@ module Dyndoc
       cfg_cmdline[:cmd]=Dyndoc.cfg_dyn[:cmd_doc] unless Dyndoc.cfg_dyn[:cmd_doc].empty?
       cfg_cmdline[:model_doc]=Dyndoc.cfg_dyn[:model_doc] unless Dyndoc.cfg_dyn[:model_doc].empty?
       cfg_cmdline[:tag_tmpl]=Dyndoc.cfg_dyn[:tag_tmpl] unless Dyndoc.cfg_dyn[:tag_tmpl].empty?
+      cfg_cmdline[:options]=Dyndoc.cfg_dyn[:options] unless Dyndoc.cfg_dyn[:options].empty?
       append_cfg(cfg_cmdline)
     end
 
@@ -284,7 +286,7 @@ module Dyndoc
       @cfg[:cmd_pandoc_options]=@tmpl_doc.cfg[:cmd_pandoc_options] unless @tmpl_doc.cfg[:cmd_pandoc_options].empty?
       # debug mode
       p @tmpl_doc.cfg if @tmpl_doc.cfg[:debug]
-      p @cfg if @tmpl_doc.cfg[:debug]
+      p [:cfg,@cfg] #if @tmpl_doc.cfg[:debug]
       # autocomplete the document filename if necessary!
       filename_completion if @cfg[:filename_doc].empty?
     end
@@ -578,9 +580,9 @@ module Dyndoc
 # make pdf
 
     def make_pdf
-      nb=1
-      nb = @cfg[:options][:pdflatex] if @cfg[:options][:pdflatex]
-      nb.times { make_pdflatex } if @cfg[:format_doc]==:tex
+      nb = @cfg[:options][:pdflatex_nb_pass] || @tmpl_doc.cfg[:options][:pdflatex_nb_pass] || 1
+      echo_mode=@cfg[:options][:pdflatex_echo] || @tmpl_doc.cfg[:options][:pdflatex_echo] || false
+      nb.times {|i| make_pdflatex(echo_mode) } if @cfg[:format_doc]==:tex
     end
 
 # make prj-tex
@@ -590,7 +592,7 @@ module Dyndoc
     end
 
 # make pdflatex
-    def make_pdflatex
+    def make_pdflatex(echo_mode=false)
       if File.read(@basename+".tex").empty?
         msg="No pdflatex #{@basename} in #{@dirname} since empty file!"
         print "\n==> "+msg
@@ -608,9 +610,11 @@ module Dyndoc
       #     system(SOFTWARE[:taskkill]+" /FI \"windowtitle eq "+@basename+".pdf*\"")
       #   end
       # end
+
       out=`#{Dyndoc.pdflatex} -halt-on-error -file-line-error -interaction=nonstopmode #{@basename}`
       out=out.b if RUBY_VERSION >= "1.9" #because out is not necessarily utf8 encoded  
       out=out.split("\n")
+      puts out if echo_mode
       if out[-2].include? "Fatal error"
         if Dyndoc.cfg_dyn[:dyndoc_mode]==:normal
           print " -> NOT OKAY!!!\n==> "
