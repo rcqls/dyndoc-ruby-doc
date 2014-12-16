@@ -62,6 +62,12 @@ module Dyndoc
     }
   }
 
+  HtmlDoc={
+    :docs=>{
+      "main"=>{:cmd=>[:save],:format_doc=>:html},
+    }
+  }
+
   class TemplateDocument
 
     # GOAL: to deal with a master document which may generate many output with different formats
@@ -288,7 +294,9 @@ module Dyndoc
       p @tmpl_doc.cfg if @tmpl_doc.cfg[:debug]
       p [:cfg,@cfg] #if @tmpl_doc.cfg[:debug]
       # autocomplete the document filename if necessary!
-      filename_completion if @cfg[:filename_doc].empty?
+      filename_completion 
+      @filename = @cfg[:filename_doc]
+      @dirname = @tmpl_doc.dirname_orig
     end
 
 =begin
@@ -302,9 +310,18 @@ module Dyndoc
 #p @tmpl_doc.basename_orig
 #p @cfg[:append_doc]
 #p Dyndoc.docExt(@cfg[:format_doc])
-      @filename=@cfg[:filename_doc]=@tmpl_doc.basename_orig+@tmpl_doc.cfg[:append]+@cfg[:append_doc]+Dyndoc.docExt(@cfg[:format_doc])
-      @dirname = @tmpl_doc.dirname_orig
-      ##p [:filename_completion,@dirname, @filename ]
+
+      if @tmpl_doc.basename_orig =~ /\_(html|tex|c|rb|txtl|md|txt)$/
+        @cfg[:cmd] =[:make_content,:save]
+        @cfg[:format_doc]=@cfg[:mode_doc]=@cfg[:format_output]=$1.to_sym
+        last=-(2 + $1.length)
+      else
+        last=-1
+      end
+
+      @cfg[:filename_doc]=@tmpl_doc.basename_orig[0..last]+@tmpl_doc.cfg[:append]+@cfg[:append_doc]+Dyndoc.docExt(@cfg[:format_doc]) if @cfg[:filename_doc].empty?
+
+      ##p [:filename_completion,@filename ]
     end
 
 # start ##################################################
@@ -341,6 +358,7 @@ module Dyndoc
     def make_prelim
       init_doc
       @cfg[:created_docs]=[]
+      p [:make_prelim,@cfg]
       #update @dirname if @cfg[:dirname_doc] or @tmpl_doc.cfg[:dirname_docs] is fixed!
       if @dirname.empty? and @cfg[:dirname_doc] and !@cfg[:dirname_doc].empty? and File.exist? @cfg[:dirname_doc]
 	      @dirname= @cfg[:dirname_doc]
@@ -473,7 +491,8 @@ module Dyndoc
 # make ###########################################
 # make content
    def make_content
-      if true #@tmpl_doc.cfg[:debug]
+      ## if true
+      if @tmpl_doc.cfg[:debug]
         @tmpl_doc.tmpl_mngr.echo=0
         @tmpl_doc.tmpl_mngr.doc=self
         ## p [:make_content,@tmpl_doc.content]
