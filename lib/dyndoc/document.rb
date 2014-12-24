@@ -292,7 +292,7 @@ module Dyndoc
       @cfg[:cmd_pandoc_options]=@tmpl_doc.cfg[:cmd_pandoc_options] unless @tmpl_doc.cfg[:cmd_pandoc_options].empty?
       # debug mode
       p @tmpl_doc.cfg if @tmpl_doc.cfg[:debug]
-      p [:cfg,@cfg] #if @tmpl_doc.cfg[:debug]
+      p [:cfg,@cfg] if @tmpl_doc.cfg[:debug]
       # autocomplete the document filename if necessary!
       filename_completion 
       @filename = @cfg[:filename_doc]
@@ -310,18 +310,18 @@ module Dyndoc
 #p @tmpl_doc.basename_orig
 #p @cfg[:append_doc]
 #p Dyndoc.docExt(@cfg[:format_doc])
-
-      if @tmpl_doc.basename_orig =~ /\_(html|tex|c|rb|txtl|md|txt)$/
+      ext_mode=nil
+      if @tmpl_doc.basename_orig =~ /\_(html|tex|c|rb|txtl|md|txt|raw)$/
         @cfg[:cmd] =[:make_content,:save]
-        @cfg[:format_doc]=@cfg[:mode_doc]=@cfg[:format_output]=$1.to_sym
+        ext_mode=$1.to_sym
+        @cfg[:format_doc]=@cfg[:mode_doc]=@cfg[:format_output]=(ext_mode == :raw ? :txt : ext_mode ) 
         last=-(2 + $1.length)
       else
         last=-1
       end
 
-      @cfg[:filename_doc]=@tmpl_doc.basename_orig[0..last]+@tmpl_doc.cfg[:append]+@cfg[:append_doc]+Dyndoc.docExt(@cfg[:format_doc]) if @cfg[:filename_doc].empty?
-
-      ##p [:filename_completion,@filename ]
+      @cfg[:filename_doc]=@tmpl_doc.basename_orig[0..last]+@tmpl_doc.cfg[:append]+@cfg[:append_doc]+Dyndoc.docExt(ext_mode || @cfg[:format_doc]) if @cfg[:filename_doc].empty?
+      ##p [:filename_completion,@filename,@cfg[:filename_doc] ]
     end
 
 # start ##################################################
@@ -358,7 +358,7 @@ module Dyndoc
     def make_prelim
       init_doc
       @cfg[:created_docs]=[]
-      p [:make_prelim,@cfg]
+      ##p [:make_prelim,@cfg]
       #update @dirname if @cfg[:dirname_doc] or @tmpl_doc.cfg[:dirname_docs] is fixed!
       if @dirname.empty? and @cfg[:dirname_doc] and !@cfg[:dirname_doc].empty? and File.exist? @cfg[:dirname_doc]
 	      @dirname= @cfg[:dirname_doc]
@@ -424,7 +424,7 @@ module Dyndoc
             @cfg[:cmd] = [:make_content,:pandoc]
             @cfg[:cmd_pandoc_options]=["-s","--self-contained","--webtex","-i","-t","s5"]
             @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".html"
-            p [:cfg,@cfg]
+            ##p [:cfg,@cfg]
           when "md2slideous"
             @cfg[:cmd] = [:make_content,:pandoc]
             @cfg[:cmd_pandoc_options]=["-s","--mathjax","-i","-t","slideous"]

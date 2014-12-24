@@ -66,3 +66,9 @@ task :install => :package do |t|
     `gem install #{File.join(PKG_INSTALL_DIR,PKG_NAME+'-'+PKG_VERSION+'.gem')} --local --no-rdoc --no-ri --user-install`
 end
 
+## docker install task
+desc "Docker install #{File.join(PKG_INSTALL_DIR,PKG_NAME+'-'+PKG_VERSION+'.gem')}"
+task :docker => :package do |t|
+    `gem install #{File.join(PKG_INSTALL_DIR,PKG_NAME+'-'+PKG_VERSION+'.gem')} --local --no-rdoc --no-ri`
+end
+
