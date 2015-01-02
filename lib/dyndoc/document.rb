@@ -286,7 +286,7 @@ module Dyndoc
       @cfg[:cmd] = [:save] if @cfg[:model_doc] and @cfg[:model_doc] != "default"
       append_cfg(@tmpl_doc.cfg[:docs][key_doc])
       # update cmd
-      #p @tmpl_doc.cfg[:cmd];p @cfg[:cmd]
+      # p @tmpl_doc.cfg[:cmd];p @cfg[:cmd]
       @cfg[:cmd]=@tmpl_doc.cfg[:cmd] unless @tmpl_doc.cfg[:cmd].empty?
       ## TODO: MODE MULTIDOC => maybe to correct if options differ for each document
       @cfg[:cmd_pandoc_options]=@tmpl_doc.cfg[:cmd_pandoc_options] unless @tmpl_doc.cfg[:cmd_pandoc_options].empty?
@@ -312,7 +312,7 @@ module Dyndoc
 #p Dyndoc.docExt(@cfg[:format_doc])
       ext_mode=nil
       if @tmpl_doc.basename_orig =~ /\_(html|tex|c|rb|txtl|md|txt|raw)$/
-        @cfg[:cmd] =[:make_content,:save]
+        @cfg[:cmd] += [:make_content,:save]
         ext_mode=$1.to_sym
         @cfg[:format_doc]=@cfg[:mode_doc]=@cfg[:format_output]=(ext_mode == :raw ? :txt : ext_mode ) 
         last=-(2 + $1.length)
@@ -326,13 +326,15 @@ module Dyndoc
 
 # start ##################################################
     def make_all
+#puts "make_all";p @cfg[:cmd]
       make_prelim
+#puts "make_all";p @cfg[:cmd]
       cd_new
       open_log
       make_content if @cfg[:cmd].include? :make_content
       @content=make_ttm if @cfg[:format_doc]==:ttm
 #puts "make_all";p @cfg[:cmd]
-      make_save if @cfg[:cmd].include? :save
+      make_save unless (@cfg[:cmd] & [:save,:save!]).empty?
       make_pandoc if @cfg[:cmd].include? :pandoc
       make_backup if @cfg[:cmd].include? :backup
       make_cat if @cfg[:cmd].include? :cat
@@ -583,7 +585,9 @@ module Dyndoc
 	    else
         ##p [:cfg,Dir.pwd,@dirname] 
 	      print "\nsave content in #{@cfg[:filename_doc]} or #{@filename}"
-	      File.open(@cfg[:filename_doc],"w") do |f|
+        p [:make_save,@cfg[:cmd]]
+	      FileUtils.mkdir_p(File.dirname(@cfg[:filename_doc])) if @cfg[:cmd].include? :save!
+        File.open(@cfg[:filename_doc],"w") do |f|
 	        f << @content
 	      end
 	      print " -> ok\n"
