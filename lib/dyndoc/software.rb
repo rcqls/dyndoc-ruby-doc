@@ -31,7 +31,11 @@ module Dyndoc
 
     unless SOFTWARE[:pdflatex]
       cmd=`type "pdflatex"`
-      SOFTWARE[:pdflatex]=cmd.empty? ? "pdflatex" : cmd.strip.split(" ")[2]
+      if RUBY_PLATFORM =~ /msys/
+        SOFTWARE[:pdflatex]=cmd.gsub(/ /,'\ ')
+      else
+        SOFTWARE[:pdflatex]=cmd.empty? ? "pdflatex" : cmd.strip.split(" ")[2]
+      end
     end
     
     unless SOFTWARE[:pandoc]
