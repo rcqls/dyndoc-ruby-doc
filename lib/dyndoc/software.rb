@@ -32,7 +32,7 @@ module Dyndoc
     unless SOFTWARE[:pdflatex]
       cmd=`type "pdflatex"`
       if RUBY_PLATFORM =~ /msys/
-        SOFTWARE[:pdflatex]=cmd.gsub(/ /,'\ ')
+        SOFTWARE[:pdflatex]="pdflatex"
       else
         SOFTWARE[:pdflatex]=cmd.empty? ? "pdflatex" : cmd.strip.split(" ")[2]
       end
