@@ -183,6 +183,13 @@ module Dyndoc
       cfg_cmdline[:model_doc]=Dyndoc.cfg_dyn[:model_doc] unless Dyndoc.cfg_dyn[:model_doc].empty?
       cfg_cmdline[:tag_tmpl]=Dyndoc.cfg_dyn[:tag_tmpl] unless Dyndoc.cfg_dyn[:tag_tmpl].empty?
       cfg_cmdline[:options]=Dyndoc.cfg_dyn[:options] unless Dyndoc.cfg_dyn[:options].empty?
+      ## select doc_list by reading "[#default]" useful in atom
+      if !@cfg[:content] and Dyndoc.cfg_dyn[:doc_list].empty? and Dyndoc.cfg_dyn[:tag_tmpl].empty? 
+        if File.read(@cfg[:filename_tmpl]) =~ /^\[\#default\]([^\[]*)\[\#/
+          cfg_cmdline[:doc_list]=$1.strip.split(",").map{|e| e.strip}
+          puts "Default document: "+cfg_cmdline[:doc_list].join(",")
+        end
+      end
       append_cfg(cfg_cmdline)
     end
 
