@@ -79,6 +79,7 @@ module Dyndoc
       :dyndoc_mode => :normal, #default mode, alternative modes :local_server, :remote_server
       :filename_tmpl=>"", #be specified later
       :filename_tmpl_orig=>"", #be specified later
+      :lib_dyn_content=>"",
       :dirname_docs=>"", #default directory unless specified by doc! 
       :rootDoc=>"",
       :user_input=>[],
@@ -148,6 +149,7 @@ module Dyndoc
         if name_tmpl2
           cfg_dyn=cfg_dyn_from(name_tmpl2)
           cfg_dyn[:filename_tmpl]=name_tmpl2
+          cfg_dyn[:lib_dyn_content]=lib_dyn_content_from(name_tmpl2)
         else
           cfg_dyn=Dyndoc::TexDoc
         end
@@ -159,6 +161,12 @@ module Dyndoc
       append_cfg(cfg_dyn) if cfg_dyn
       #read the optional cfg
       read_cmdline     
+    end
+
+    def lib_dyn_content_from(tmpl=nil)
+      code = ""
+      code=File.read(lib_file) if (lib_file=(Dyndoc::Utils.lib_file_exists? tmpl))
+      return code
     end
 
     def cfg_dyn_from(tmpl)
