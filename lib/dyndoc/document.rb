@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'dyndoc/software'
 require 'dyndoc-core'
 
@@ -164,7 +165,7 @@ module Dyndoc
     end
 
     def lib_dyn_content_from(tmpl=nil)
-      code = ""
+      code,lib_file = "",nil
       code=File.read(lib_file) if (lib_file=(Dyndoc::Utils.lib_file_exists? tmpl))
       return code
     end
@@ -193,7 +194,7 @@ module Dyndoc
       cfg_cmdline[:options]=Dyndoc.cfg_dyn[:options] unless Dyndoc.cfg_dyn[:options].empty?
       ## select doc_list by reading "[#default]" useful in atom
       if !@cfg[:content] and Dyndoc.cfg_dyn[:doc_list].empty? and Dyndoc.cfg_dyn[:tag_tmpl].empty? 
-        if File.read(@cfg[:filename_tmpl]) =~ /^\[\#default\]([^\[]*)\[\#/
+        if File.read(@cfg[:filename_tmpl]).force_encoding("utf-8") =~ /^\[\#default\]([^\[]*)\[\#/
           cfg_cmdline[:doc_list]=$1.strip.split(",").map{|e| e.strip}
           puts "Default document: "+cfg_cmdline[:doc_list].join(",")
         end
