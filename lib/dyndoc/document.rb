@@ -148,15 +148,25 @@ module Dyndoc
       if name_tmpl
         name_tmpl2=Dyndoc.directory_tmpl? name_tmpl
         if name_tmpl2
-          cfg_dyn=cfg_dyn_from(name_tmpl2)
+          # test if [#cfg] block exists inside _lib.dyn file
+          lib_dyn_content=lib_dyn_content_from(name_tmpl2)
+          tmp=cfg_dyn_from_lib(lib_dyn_content)
+          if tmp[:cfg]
+            p :cfg_from_lib
+            cfg_dyn=cfg_dyn_from_code(tmp[:cfg])
+            lib_dyn_content=tmp[:lib_dyn_content]
+          else
+            cfg_dyn=cfg_dyn_from(name_tmpl2)
+          end
           cfg_dyn[:filename_tmpl]=name_tmpl2
-          cfg_dyn[:lib_dyn_content]=lib_dyn_content_from(name_tmpl2)
+          cfg_dyn[:lib_dyn_content]=lib_dyn_content
         else
           cfg_dyn=Dyndoc::TexDoc
         end
         cfg_dyn[:filename_tmpl_orig] = name_tmpl
       end
-#Dyndoc.warn "read_cfg:cfg_dyn",cfg_dyn
+#
+Dyndoc.warn "read_cfg:cfg_dyn",cfg_dyn
 
       #otherwise it is the default version!
       append_cfg(cfg_dyn) if cfg_dyn
@@ -170,18 +180,32 @@ module Dyndoc
       return code
     end
 
-    def cfg_dyn_from(tmpl)
-      code,cfg_file=nil,nil
-      code=File.read(cfg_file) if (cfg_file=(Dyndoc::Utils.cfg_file_exists? tmpl))
-      ##puts "code";p code;p cfg_file
-      Utils.clean_bom_utf8!(code) if code
-      code="Dyndoc::TexDoc" unless code
+    def cfg_dyn_from_code(code)
       if code and code.is_a? String
           code="{\n"+code+"\n}" if code=~/\A\s*\:/m #to avoid at the beginning { and at the end }!
           ##p [code,Object.class_eval(code)]
           return Object.class_eval(code)
       end
       return nil
+    end
+
+    def cfg_dyn_from_lib(content)
+
+        tmp=content.force_encoding("utf-8").split(/\[\#/)
+        if tmp[0].empty? and tmp[1][0...4]=="cfg]"
+          return {:cfg=> tmp[1][4..-1], :lib_dyn_content => (tmp[0,1]+tmp[2..-1]).join('[#')}
+        else
+          return {:cfg=> nil, :lib_dyn_content => content}
+        end
+    end
+
+    def cfg_dyn_from(tmpl)
+      code,cfg_file=nil,nil
+      code=File.read(cfg_file) if (cfg_file=(Dyndoc::Utils.cfg_file_exists? tmpl))
+      ##puts "code";p code;p cfg_file
+      Utils.clean_bom_utf8!(code) if code
+      code="Dyndoc::TexDoc" unless code
+      return cfg_dyn_from_code(code)
     end
 
     def read_cmdline
