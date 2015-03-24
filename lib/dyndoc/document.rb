@@ -190,7 +190,7 @@ Dyndoc.warn "read_cfg:cfg_dyn",cfg_dyn
     end
 
     def cfg_dyn_from_lib(content)
-
+        return {:cfg=> nil, :lib_dyn_content => content} if content.empty?
         tmp=content.force_encoding("utf-8").split(/\[\#/)
         if tmp[0].empty? and tmp[1][0...4]=="cfg]"
           return {:cfg=> tmp[1][4..-1], :lib_dyn_content => (tmp[0,1]+tmp[2..-1]).join('[#')}
