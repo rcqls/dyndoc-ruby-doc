@@ -152,7 +152,7 @@ module Dyndoc
           lib_dyn_content=lib_dyn_content_from(name_tmpl2)
           tmp=cfg_dyn_from_lib(lib_dyn_content)
           if tmp[:cfg]
-            p :cfg_from_lib
+            #p :cfg_from_lib
             cfg_dyn=cfg_dyn_from_code(tmp[:cfg])
             lib_dyn_content=tmp[:lib_dyn_content]
           else
@@ -165,8 +165,7 @@ module Dyndoc
         end
         cfg_dyn[:filename_tmpl_orig] = name_tmpl
       end
-#
-Dyndoc.warn "read_cfg:cfg_dyn",cfg_dyn
+#Dyndoc.warn "read_cfg:cfg_dyn",cfg_dyn
 
       #otherwise it is the default version!
       append_cfg(cfg_dyn) if cfg_dyn
