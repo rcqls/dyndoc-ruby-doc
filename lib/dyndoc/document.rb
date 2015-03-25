@@ -420,10 +420,10 @@ module Dyndoc
     #p "ici";p @cfg
       require "dyndoc/common/init"
       #p PANDOC_CMDS
-      if @basename =~ /\_(md|tex)2(odt|docx|beamer|s5|dzslides|slideous|slidy)$/ or (pandoc_cmd=PANDOC_CMDS.include? @cfg[:cmd_pandoc_options][0])
+      if @basename =~ /\_(md|tex)2(odt|docx|beamer|s5|dzslides|slideous|slidy|revealjs)$/ or (pandoc_cmd=PANDOC_CMDS.include? @cfg[:cmd_pandoc_options][0])
         #p [@basename,$1,$2,pandoc_cmd]
         if pandoc_cmd
-          @cfg[:cmd_pandoc_options][0] =~ /(md|tex)2(odt|docx|beamer|s5|dzslides|slideous|slidy)$/
+          @cfg[:cmd_pandoc_options][0] =~ /(md|tex)2(odt|docx|beamer|s5|dzslides|slideous|slidy|revealjs)$/
         else
           @basename = @basename[0..(@basename.length-$1.length-$2.length-3)] unless pandoc_cmd
         end
@@ -431,7 +431,11 @@ module Dyndoc
         @cfg[:cmd] << :make_content << :pandoc
         @cfg[:format_doc]=@cfg[:mode_doc]=$1.to_sym
         @cfg[:format_output]=$2.to_sym
-         
+        cfg_pandoc=nil
+        if File.exist? File.join(Dyndoc.cfg_dir[:etc],"pandoc","config.rb")
+          cfg_pandoc=Object.class_eval(File.read(File.join(Dyndoc.cfg_dir[:etc],"pandoc","config.rb")))
+        end
+
         if @cfg[:cmd_pandoc_options].empty? or pandoc_cmd
           p [@cfg[:format_doc].to_s , @cfg[:format_output].to_s]
           case @cfg[:format_doc].to_s + "2" + @cfg[:format_output].to_s
@@ -463,9 +467,21 @@ module Dyndoc
             @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".html"  
           when "md2s5"
             @cfg[:cmd] = [:make_content,:pandoc]
-            @cfg[:cmd_pandoc_options]=["-s","--self-contained","--webtex","-i","-t","s5"]
+            if cfg_pandoc
+              @cfg[:cmd_pandoc_options]=cfg_pandoc["md2s5"]
+            else
+              @cfg[:cmd_pandoc_options]=["-s","--self-contained","--webtex","-i","-t","s5"]
+            end
             @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".html"
             ##p [:cfg,@cfg]
+          when "md2revealjs"
+            @cfg[:cmd] = [:make_content,:pandoc]
+            if cfg_pandoc
+              @cfg[:cmd_pandoc_options]=cfg_pandoc["md2revealjs"]
+            else
+              @cfg[:cmd_pandoc_options]=["-s","--self-contained","--webtex","-i","-t","revealjs"]
+            end
+            @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".html"
           when "md2slideous"
             @cfg[:cmd] = [:make_content,:pandoc]
             @cfg[:cmd_pandoc_options]=["-s","--mathjax","-i","-t","slideous"]
