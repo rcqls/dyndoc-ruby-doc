@@ -4,6 +4,32 @@ require 'dyndoc-core'
 
 module Dyndoc
 
+  # used for Docker mode
+
+  module Docker
+
+    ## TO TEST: @@task_file = "/Users/remy/DOCKER_TASK_FILE"
+    @@task_file = "/dyndoc-proj/.tmp/task_latex_file"
+    @@tasks=nil
+
+    def Docker.init_task_file
+      FileUtils.mkdir_p(File.dirname(@@task_file))
+      FileUtils.rm_f(@@task_file)
+      @@tasks=[]
+    end
+
+    def Docker.add_task(task)
+      @@tasks << task
+    end
+
+    def Docker.save_task_file
+      File.open(@@task_file,"w") do |f|
+        f << @@tasks.join(",")
+      end 
+    end
+
+  end
+
   module DynConfig
 
     def init_cfg(cfg=nil)
@@ -78,6 +104,7 @@ module Dyndoc
     @@cfg={
       :working_dir => "", #directory where dyndoc is processed
       :dyndoc_mode => :normal, #default mode, alternative modes :local_server, :remote_server
+      :docker_mode => false, 
       :filename_tmpl=>"", #be specified later
       :filename_tmpl_orig=>"", #be specified later
       :lib_dyn_content=>"",
@@ -269,10 +296,17 @@ module Dyndoc
         puts "document list: "+@cfg[:docs].keys.join(", ")
         return
       end
+
+      # Added for docker mode
+      Docker.init_task_file if Dyndoc.cfg_dyn[:docker_mode]
+
       ##puts "@doc_list"; p @doc_list
       @doc_list.each do |kdoc|
 	      @docs[kdoc].make_all
       end
+
+      Docker.save_task_file if Dyndoc.cfg_dyn[:docker_mode]
+
     end
 
   end
@@ -377,9 +411,12 @@ module Dyndoc
       make_pandoc if @cfg[:cmd].include? :pandoc
       make_backup if @cfg[:cmd].include? :backup
       make_cat if @cfg[:cmd].include? :cat
-      make_pdf if @cfg[:cmd].include? :pdf
-      make_png if @cfg[:cmd].include? :png
-      make_view if @cfg[:cmd].include? :view
+      # added for docker mode when latex is done via another docker
+      make_docker if Dyndoc.cfg_dyn[:docker_mode] and @cfg[:format_doc]==:tex
+      make_pdf if @cfg[:cmd].include? :pdf and !Dyndoc.cfg_dyn[:docker_mode]
+      make_png if @cfg[:cmd].include? :png and !Dyndoc.cfg_dyn[:docker_mode]
+      make_view if @cfg[:cmd].include? :view# added for docker mode when latex is done via another docker
+      make_docker if Dyndoc.cfg_dyn[:docker_mode] and @cfg[:format_doc]==:tex
       close_log
       cd_old
     end
@@ -598,13 +635,13 @@ module Dyndoc
       @ar.find_entry('Pictures') || @ar.mkdir('Pictures')
       # create the necessary files
       @inputs.values.each do |input|
-	    input.xlink_href.keys.each do |key|
-	        if (entry=input.ar.find_entry(key))
-	        @ar.get_output_stream(input.xlink_href[key]) do |f|
-	        f.write input.ar.read(entry)
-	    end
-	  end
-	end
+  	    input.xlink_href.keys.each do |key|
+          if (entry=input.ar.find_entry(key))
+            @ar.get_output_stream(input.xlink_href[key]) do |f|
+      	        f.write input.ar.read(entry)
+      	    end
+          end
+        end
       end
     end
 
@@ -661,6 +698,13 @@ module Dyndoc
       nb = @cfg[:options][:pdflatex_nb_pass] || @tmpl_doc.cfg[:options][:pdflatex_nb_pass] || 1
       echo_mode=@cfg[:options][:pdflatex_echo] || @tmpl_doc.cfg[:options][:pdflatex_echo] || false
       nb.times {|i| make_pdflatex(echo_mode) } if @cfg[:format_doc]==:tex
+    end
+
+    def make_docker
+      nb = @cfg[:options][:pdflatex_nb_pass] || @tmpl_doc.cfg[:options][:pdflatex_nb_pass] || 1
+      if @cfg[:format_doc]==:tex
+        Docker.add_task @dirname+";"+@basename+";"+nb.to_s
+      end
     end
 
 # make prj-tex
