@@ -9,11 +9,10 @@ module Dyndoc
   module Docker
 
     ## TO TEST: @@task_file = "/Users/remy/DOCKER_TASK_FILE"
-    @@task_file = "/dyndoc-proj/.tmp/task_latex_file"
+    @@task_file = "/dyndoc-proj/.cache/task_latex_file"
     @@tasks=nil
 
     def Docker.init_task_file
-      FileUtils.mkdir_p(File.dirname(@@task_file))
       FileUtils.rm_f(@@task_file)
       @@tasks=[]
     end
