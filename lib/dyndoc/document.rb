@@ -416,7 +416,6 @@ module Dyndoc
       make_pdf if @cfg[:cmd].include? :pdf and !Dyndoc.cfg_dyn[:docker_mode]
       make_png if @cfg[:cmd].include? :png and !Dyndoc.cfg_dyn[:docker_mode]
       make_view if @cfg[:cmd].include? :view# added for docker mode when latex is done via another docker
-      make_docker if Dyndoc.cfg_dyn[:docker_mode] and @cfg[:format_doc]==:tex
       close_log
       cd_old
     end
