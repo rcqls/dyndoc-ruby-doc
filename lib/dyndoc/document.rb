@@ -4,6 +4,8 @@ require 'dyndoc-core'
 
 module Dyndoc
 
+
+=begin ##OBSOLETE## replaced by system like dyndoc-ruby-task
   # used for Docker mode
 
   module Docker
@@ -28,6 +30,7 @@ module Dyndoc
     end
 
   end
+=end
 
   module DynConfig
 
@@ -72,7 +75,7 @@ module Dyndoc
   #just for a shortcut
   TexDoc={
     :docs=>{
-      "main"=>{:cmd=>[:save,:pdf,:view]},
+      "main"=>{:cmd=>[:save]} #,:pdf,:view]},
     }
   }
 
@@ -133,6 +136,8 @@ module Dyndoc
     attr_accessor :tmpl_mngr, :docs, :cfg, :basename, :dirname, :basename_orig, :dirname_orig, :content
 
     def initialize(name) #docs is a hash containing all the files
+      ## complete with default extension if not provided
+      name += ".dyn" if File.basename(name) == File.basename(name,".*")
       @name=name
       ## read config from name
       @cfg=@@cfg.dup
@@ -269,6 +274,7 @@ module Dyndoc
 
     # document basename from template filename
     def basename_tmpl
+      ##p @cfg[:filename_tmpl]
       mode=Dyndoc.guess_mode(@cfg[:filename_tmpl])
       ##p ["mode",mode,Dyndoc.tmplExt[mode]]
       if mode
@@ -297,14 +303,14 @@ module Dyndoc
       end
 
       # Added for docker mode
-      Docker.init_task_file if Dyndoc.cfg_dyn[:docker_mode]
+      ##OBSOLETE## Docker.init_task_file if Dyndoc.cfg_dyn[:docker_mode]
 
       ##puts "@doc_list"; p @doc_list
       @doc_list.each do |kdoc|
 	      @docs[kdoc].make_all
       end
 
-      Docker.save_task_file if Dyndoc.cfg_dyn[:docker_mode]
+      ##OBSOLETE## Docker.save_task_file if Dyndoc.cfg_dyn[:docker_mode]
 
     end
 
@@ -404,17 +410,17 @@ module Dyndoc
       cd_new
       open_log
       make_content if @cfg[:cmd].include? :make_content
-      @content=make_ttm if @cfg[:format_doc]==:ttm
+      ##OBSOLETE## @content=make_ttm if @cfg[:format_doc]==:ttm
 #puts "make_all";p @cfg[:cmd]
       make_save unless (@cfg[:cmd] & [:save,:save!]).empty?
-      make_pandoc if @cfg[:cmd].include? :pandoc
-      make_backup if @cfg[:cmd].include? :backup
-      make_cat if @cfg[:cmd].include? :cat
+      ##OBSOLETE## make_pandoc if @cfg[:cmd].include? :pandoc
+      ##OBSOLETE## make_backup if @cfg[:cmd].include? :backup
+      ##OBSOLETE## make_cat if @cfg[:cmd].include? :cat
       # added for docker mode when latex is done via another docker
-      make_docker if Dyndoc.cfg_dyn[:docker_mode] and @cfg[:format_doc]==:tex
-      make_pdf if @cfg[:cmd].include? :pdf and !Dyndoc.cfg_dyn[:docker_mode]
-      make_png if @cfg[:cmd].include? :png and !Dyndoc.cfg_dyn[:docker_mode]
-      make_view if @cfg[:cmd].include? :view# added for docker mode when latex is done via another docker
+      ##OBSOLETE## make_docker if Dyndoc.cfg_dyn[:docker_mode] and @cfg[:format_doc]==:tex
+      ##OBSOLETE## make_pdf if @cfg[:cmd].include? :pdf ##OBSOLETE## and !Dyndoc.cfg_dyn[:docker_mode]
+      ##OBSOLETE## make_png if @cfg[:cmd].include? :png ##OBSOLETE## and !Dyndoc.cfg_dyn[:docker_mode]
+      ##OBSOLETE## make_view if @cfg[:cmd].include? :view # added for docker mode when latex is done via another docker
       close_log
       cd_old
     end
@@ -471,6 +477,7 @@ module Dyndoc
           cfg_pandoc=Object.class_eval(File.read(File.join(Dyndoc.cfg_dir[:etc],"pandoc","config.rb")))
         end
 
+=begin ##OBSOLETE##
         if @cfg[:cmd_pandoc_options].empty? or pandoc_cmd
           p [@cfg[:format_doc].to_s , @cfg[:format_output].to_s]
           case @cfg[:format_doc].to_s + "2" + @cfg[:format_output].to_s
@@ -523,6 +530,8 @@ module Dyndoc
             @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".html"
           end
         end
+=end
+
       end
     end
 
@@ -643,6 +652,7 @@ module Dyndoc
       end
     end
 
+=begin ##OBSOLETE##
     def make_pandoc
       opts=@cfg[:cmd_pandoc_options]+["-o",@cfg[:pandoc_file_output]]
       ## p ["make_pandoc",@content]
@@ -656,6 +666,7 @@ module Dyndoc
       end
       @cfg[:created_docs] << @cfg[:pandoc_file_output]
     end
+=end
 
     def make_save
 	    case @cfg[:format_doc]
@@ -684,7 +695,10 @@ module Dyndoc
 	      @cfg[:created_docs] << @filename #( @dirname.empty? ? "" : @dirname+"/" ) + @filename
 	    end
     end
- 
+
+
+=begin ##OBSOLETE##
+
     def make_cat
       puts @content
     end
@@ -704,6 +718,8 @@ module Dyndoc
         Docker.add_task @dirname+";"+@basename+";"+nb.to_s
       end
     end
+
+
 
 # make prj-tex
     def make_prj_tex
@@ -825,6 +841,8 @@ module Dyndoc
     def make_viewpng
         system "#{@tmpl_doc.cfg[:pngviewer]} #{@basename}.png&"
     end
+
+=end
     
 # TODO: TO UPDATE!!!! file ############################################
 # file tex
