@@ -683,7 +683,7 @@ module Dyndoc
         case mode
         when :save
           FileUtils.mkdir_p(File.join(File.dirname(@filename),".save"))
-          FileUtils.mv(@filename,@filename_old=File.join(File.dirname(@filename),".save",File.basename(@filename))
+          FileUtils.mv(@filename,@filename_old=File.join(File.dirname(@filename),".save",File.basename(@filename)))
         when :rm
           FileUtils.rm(@filename)
         end
