@@ -409,6 +409,12 @@ module Dyndoc
 #puts "make_all";p @cfg[:cmd]
       cd_new
       open_log
+
+      # First, save or rm (both is useless) the old file
+      make_old(:save) if @cfg[:cmd].include? :save_old
+      make_old(:rm)   if @cfg[:cmd].include? :rm_old
+      
+      # make content
       make_content if @cfg[:cmd].include? :make_content
       ##OBSOLETE## @content=make_ttm if @cfg[:format_doc]==:ttm
 #puts "make_all";p @cfg[:cmd]
@@ -609,6 +615,7 @@ module Dyndoc
           print " -> ok\n"
         rescue
           ok=false
+          @content=nil ## added to know if one need to restaure
           print " -> NO, NO and NO!!\n"
         end
       end
@@ -668,6 +675,21 @@ module Dyndoc
     end
 =end
 
+    
+    # As soon as possible when using dropbox or tools
+    def make_old(mode=:rm) #mode=:rm or :save
+      ## After introduction of dyntask, the default is to save the old file if existing
+      if File.exists? @filename
+        case mode
+        when :save
+          FileUtils.mkdir_p(File.join(File.dirname(@filename),".save"))
+          FileUtils.mv(@filename,@filename_old=File.join(File.dirname(@filename),".save",File.basename(@filename))
+        when :rm
+          FileUtils.rm(@filename)
+        end
+      end
+    end
+
     def make_save
 	    case @cfg[:format_doc]
 	    when :odt
@@ -688,12 +710,19 @@ module Dyndoc
 	      print "\nsave content in #{@cfg[:filename_doc]} or #{@filename}"
         p [:make_save,@cfg[:cmd]]
 	      FileUtils.mkdir_p(File.dirname(@cfg[:filename_doc])) if @cfg[:cmd].include? :save!
-        File.open(@cfg[:filename_doc],"w") do |f|
-	        f << @content
-	      end
-	      print " -> ok\n"
-	      @cfg[:created_docs] << @filename #( @dirname.empty? ? "" : @dirname+"/" ) + @filename
-	    end
+        
+        ## if @content is nil => bad execution
+        if !@content 
+          FileUtils.mv(@filename_old,@filename) if @filename_old and File.exists? @filename_old
+        else
+          ## Save new 
+          File.open(@cfg[:filename_doc],"w") do |f|
+  	        f << @content
+  	      end
+  	      print " -> ok\n"
+  	      @cfg[:created_docs] << @filename #( @dirname.empty? ? "" : @dirname+"/" ) + @filename
+        end
+      end
     end
 
 
