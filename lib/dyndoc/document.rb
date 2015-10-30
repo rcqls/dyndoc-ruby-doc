@@ -626,7 +626,7 @@ module Dyndoc
       nb = @cfg[:options][:pdflatex_nb_pass] || @tmpl_doc.cfg[:options][:pdflatex_nb_pass] || 1
       if @cfg[:format_doc]==:tex
         require 'dyntask'
-        DynTask.add_task({cmd: :pdflatex, source: "%"+@basename+".tex", nb_pass: nb, echo: echo})
+        DynTask.add_task({cmd: :pdflatex, source: "%"+@basename+".tex", content: @content, nb_pass: nb, echo: echo})
         DynTask.save_tasks(@basename)
       end
     end
