@@ -424,7 +424,7 @@ module Dyndoc
       ##OBSOLETE## make_cat if @cfg[:cmd].include? :cat
       # added for docker mode when latex is done via another docker
       ##OBSOLETE## make_docker if Dyndoc.cfg_dyn[:docker_mode] and @cfg[:format_doc]==:tex
-      ##OBSOLETE## make_pdf if @cfg[:cmd].include? :pdf ##OBSOLETE## and !Dyndoc.cfg_dyn[:docker_mode]
+      make_task_pdflatex if @cfg[:cmd].include? :pdf ##OBSOLETE## and !Dyndoc.cfg_dyn[:docker_mode]
       ##OBSOLETE## make_png if @cfg[:cmd].include? :png ##OBSOLETE## and !Dyndoc.cfg_dyn[:docker_mode]
       ##OBSOLETE## make_view if @cfg[:cmd].include? :view # added for docker mode when latex is done via another docker
       close_log
@@ -618,6 +618,16 @@ module Dyndoc
           @content=nil ## added to know if one need to restaure
           print " -> NO, NO and NO!!\n"
         end
+      end
+    end
+
+    def make_task_pdflatex
+      echo = @cfg[:options][:echo_mode] || @tmpl_doc.cfg[:options][:echo_mode] || false
+      nb = @cfg[:options][:pdflatex_nb_pass] || @tmpl_doc.cfg[:options][:pdflatex_nb_pass] || 1
+      if @cfg[:format_doc]==:tex
+        require 'dyntask'
+        DynTask.add_task({cmd: :pdflatex, source: "%"+@basename+".tex", nb_pass: nb, echo: echo})
+        DynTask.save_tasks(@basename)
       end
     end
 
