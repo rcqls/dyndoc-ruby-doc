@@ -106,7 +106,7 @@ module Dyndoc
     @@cfg={
       :working_dir => "", #directory where dyndoc is processed
       :dyndoc_mode => :normal, #default mode, alternative modes :local_server, :remote_server
-      :docker_mode => false, 
+      ## OBSOLETE: :docker_mode => false, 
       :filename_tmpl=>"", #be specified later
       :filename_tmpl_orig=>"", #be specified later
       :lib_dyn_content=>"",
@@ -363,6 +363,8 @@ module Dyndoc
       @cfg[:cmd].uniq!
       @cfg[:cmd] = [:save] if @cfg[:model_doc] and @cfg[:model_doc] != "default"
       append_cfg(@tmpl_doc.cfg[:docs][key_doc])
+      ## from command line
+      read_cmdline
       # update cmd
       # p @tmpl_doc.cfg[:cmd];p @cfg[:cmd]
       @cfg[:cmd]=@tmpl_doc.cfg[:cmd] unless @tmpl_doc.cfg[:cmd].empty?
@@ -375,6 +377,12 @@ module Dyndoc
       filename_completion 
       @filename = @cfg[:filename_doc]
       @dirname = @tmpl_doc.dirname_orig
+    end
+
+    def read_cmdline
+      cfg_cmdline={}
+      cfg_cmdline[:format_doc]=Dyndoc.cfg_dyn[:format_doc] unless Dyndoc.cfg_dyn[:format_doc].empty?
+      append_cfg(cfg_cmdline)
     end
 
 =begin
@@ -397,7 +405,6 @@ module Dyndoc
       else
         last=-1
       end
-
       @cfg[:filename_doc]=@tmpl_doc.basename_orig[0..last]+@tmpl_doc.cfg[:append]+@cfg[:append_doc]+Dyndoc.docExt(ext_mode || @cfg[:format_doc]) if @cfg[:filename_doc].empty?
       ##p [:filename_completion,@filename,@cfg[:filename_doc] ]
     end
