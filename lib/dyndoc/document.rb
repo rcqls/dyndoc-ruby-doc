@@ -119,6 +119,7 @@ module Dyndoc
       :doc_list=>[], #list of documents if nonempty
       :cmd=>[], #list of commands if nonempty for every document
       :cmd_pandoc_options => [], #pandoc options
+      :pandoc_filter => "",
       :options => {}, # added for example to compile twice latex
       :dtag=>:dtag,
       :dtags=>[:dtag],
@@ -330,6 +331,7 @@ module Dyndoc
       :post_doc=>[],
       :cmd=> [], # :save , :cat, :pdf or :png, :view behaving differently depending on the format_doc
       :cmd_pandoc_options => [],
+      :pandoc_filter => "",
       :filename_doc => "",
       :created_docs => [], 
       :dirname_doc=>"",
@@ -370,6 +372,8 @@ module Dyndoc
       @cfg[:cmd]=@tmpl_doc.cfg[:cmd] unless @tmpl_doc.cfg[:cmd].empty?
       ## TODO: MODE MULTIDOC => maybe to correct if options differ for each document
       @cfg[:cmd_pandoc_options]=@tmpl_doc.cfg[:cmd_pandoc_options] unless @tmpl_doc.cfg[:cmd_pandoc_options].empty?
+      ##p [:pandoc_cfg,@tmpl_doc.cfg[:pandoc_filter]]
+      @cfg[:pandoc_filter]=@tmpl_doc.cfg[:pandoc_filter] unless @tmpl_doc.cfg[:pandoc_filter].empty?
       # debug mode
       p @tmpl_doc.cfg if @tmpl_doc.cfg[:debug]
       p [:cfg,@cfg] if @tmpl_doc.cfg[:debug]
@@ -382,6 +386,7 @@ module Dyndoc
     def read_cmdline
       cfg_cmdline={}
       cfg_cmdline[:format_doc]=Dyndoc.cfg_dyn[:format_doc] unless Dyndoc.cfg_dyn[:format_doc].empty?
+      cfg_cmdline[:pandoc_filter]=Dyndoc.cfg_dyn[:pandoc_filter] unless Dyndoc.cfg_dyn[:pandoc_filter].empty?
       append_cfg(cfg_cmdline)
     end
 
@@ -405,6 +410,8 @@ module Dyndoc
       else
         last=-1
       end
+      ##DEBUG: 
+      p [@tmpl_doc.basename_orig[0..last],@tmpl_doc.cfg[:append],@cfg[:append_doc],@cfg[:format_doc],Dyndoc.docExt(ext_mode || @cfg[:format_doc])]
       @cfg[:filename_doc]=@tmpl_doc.basename_orig[0..last]+@tmpl_doc.cfg[:append]+@cfg[:append_doc]+Dyndoc.docExt(ext_mode || @cfg[:format_doc]) if @cfg[:filename_doc].empty?
       ##p [:filename_completion,@filename,@cfg[:filename_doc] ]
     end
@@ -413,7 +420,8 @@ module Dyndoc
     def make_all
 #puts "make_all";p @cfg[:cmd]
       make_prelim
-#puts "make_all";p @cfg[:cmd]
+#
+puts "make_all";p @cfg[:cmd]
       cd_new
       open_log
 
@@ -432,6 +440,7 @@ module Dyndoc
       # added for docker mode when latex is done via another docker
       ##OBSOLETE## make_docker if Dyndoc.cfg_dyn[:docker_mode] and @cfg[:format_doc]==:tex
       make_task_pdflatex if @cfg[:cmd].include? :pdf ##OBSOLETE## and !Dyndoc.cfg_dyn[:docker_mode]
+      make_task_pandoc if @cfg[:cmd].include? :make_task_pandoc
       ##OBSOLETE## make_png if @cfg[:cmd].include? :png ##OBSOLETE## and !Dyndoc.cfg_dyn[:docker_mode]
       ##OBSOLETE## make_view if @cfg[:cmd].include? :view # added for docker mode when latex is done via another docker
       close_log
@@ -472,78 +481,22 @@ module Dyndoc
       Dyndoc.make_append unless Dyndoc.appendVar
 =end
     #p "ici";p @cfg
+    ##p [:pandoc_filter,@cfg[:pandoc_filter]]
       require "dyndoc/common/init"
       #p PANDOC_CMDS
-      if @basename =~ /\_(md|tex)2(odt|docx|beamer|s5|dzslides|slideous|slidy|revealjs)$/ or (pandoc_cmd=PANDOC_CMDS.include? @cfg[:cmd_pandoc_options][0])
+      if @basename =~ /\_(md|tex)2(odt|docx|beamer|s5|dzslides|slideous|slidy|revealjs)$/ or (pandoc_cmd=PANDOC_CMDS.include? "--"+@cfg[:pandoc_filter])
         #p [@basename,$1,$2,pandoc_cmd]
         if pandoc_cmd
-          @cfg[:cmd_pandoc_options][0] =~ /(md|tex)2(odt|docx|beamer|s5|dzslides|slideous|slidy|revealjs)$/
+          @cfg[:pandoc_filter] =~ /(md|tex)2(odt|docx|beamer|s5|dzslides|slideous|slidy|revealjs)$/
         else
           @basename = @basename[0..(@basename.length-$1.length-$2.length-3)] unless pandoc_cmd
         end
         #p @basename
-        @cfg[:cmd] << :make_content << :pandoc
+        @cfg[:cmd] << :make_content << :make_task_pandoc
+        @cfg[:cmd] -= [:save]
+        @cfg[:cmd].uniq!
         @cfg[:format_doc]=@cfg[:mode_doc]=$1.to_sym
         @cfg[:format_output]=$2.to_sym
-        cfg_pandoc=nil
-        if File.exist? File.join(Dyndoc.cfg_dir[:etc],"pandoc","config.rb")
-          cfg_pandoc=Object.class_eval(File.read(File.join(Dyndoc.cfg_dir[:etc],"pandoc","config.rb")))
-        end
-
-=begin ##OBSOLETE##
-        if @cfg[:cmd_pandoc_options].empty? or pandoc_cmd
-          p [@cfg[:format_doc].to_s , @cfg[:format_output].to_s]
-          case @cfg[:format_doc].to_s + "2" + @cfg[:format_output].to_s
-          when "md2odt"
-            @cfg[:cmd] = [:make_content,:pandoc]
-            @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".odt"
-          when "md2docx"
-            @cfg[:cmd] = [:make_content,:pandoc]
-            @cfg[:model_doc]=nil
-            @cfg[:cmd_pandoc_options]=["-s","-S"]
-            @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".docx"
-          when "tex2docx"
-            @cfg[:cmd] = [:make_content,:save,:pandoc]
-            @cfg[:pandoc_file_input]=@filename
-            @cfg[:model_doc]=nil
-            @cfg[:cmd_pandoc_options]=["-s"]
-            @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".docx"
-          when "md2beamer"
-            @cfg[:cmd] = [:make_content,:pandoc]
-            @cfg[:cmd_pandoc_options]=["-t","beamer"]
-            @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".pdf"
-          when "md2dzslides"
-            @cfg[:cmd] = [:make_content,:pandoc]
-            @cfg[:cmd_pandoc_options]=["-s","--mathml","-i","-t","dzslides"]
-            @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".html"
-          when "md2slidy"
-            @cfg[:cmd] = [:make_content,:pandoc]
-            @cfg[:cmd_pandoc_options]=["-s","--webtex","-i","-t","slidy"]
-            @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".html"  
-          when "md2s5"
-            @cfg[:cmd] = [:make_content,:pandoc]
-            if cfg_pandoc
-              @cfg[:cmd_pandoc_options]=cfg_pandoc["md2s5"]
-            else
-              @cfg[:cmd_pandoc_options]=["-s","--self-contained","--webtex","-i","-t","s5"]
-            end
-            @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".html"
-            ##p [:cfg,@cfg]
-          when "md2revealjs"
-            @cfg[:cmd] = [:make_content,:pandoc]
-            if cfg_pandoc
-              @cfg[:cmd_pandoc_options]=cfg_pandoc["md2revealjs"]
-            else
-              @cfg[:cmd_pandoc_options]=["-s","--self-contained","--webtex","-i","-t","revealjs"]
-            end
-            @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".html"
-          when "md2slideous"
-            @cfg[:cmd] = [:make_content,:pandoc]
-            @cfg[:cmd_pandoc_options]=["-s","--mathjax","-i","-t","slideous"]
-            @cfg[:pandoc_file_output]=@basename+@cfg[:append_doc]+".html"
-          end
-        end
-=end
 
       end
     end
@@ -638,6 +591,15 @@ module Dyndoc
       end
     end
 
+    def make_task_pandoc
+      filter=@cfg[:format_doc].to_s + "2" + @cfg[:format_output].to_s
+      require 'dyntask'
+      task={cmd: :pandoc, content: @content, filter: filter}
+      task[:source]="%"+@basename+".tex" if filter=="tex2docx"
+      DynTask.add_task(task)
+      DynTask.save_tasks(@basename)
+    end
+
     def make_odt_content_xml
       @content_xml=REXML::Document.new(@content)
 #p @content_xml.to_s
@@ -725,7 +687,7 @@ module Dyndoc
 	    else
         ##p [:cfg,Dir.pwd,@dirname] 
 	      print "\nsave content in #{@cfg[:filename_doc]} or #{@filename}"
-        p [:make_save,@cfg[:cmd]]
+        ##p [:make_save,@cfg[:cmd]]
 	      FileUtils.mkdir_p(File.dirname(@cfg[:filename_doc])) if @cfg[:cmd].include? :save!
         
         ## if @content is nil => bad execution
