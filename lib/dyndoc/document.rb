@@ -1,5 +1,5 @@
 # encoding: UTF-8
-require 'dyndoc/software'
+require 'dyndoc-software'
 require 'dyndoc-core'
 
 module Dyndoc
