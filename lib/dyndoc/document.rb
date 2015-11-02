@@ -595,7 +595,7 @@ puts "make_all";p @cfg[:cmd]
       filter=@cfg[:format_doc].to_s + "2" + @cfg[:format_output].to_s
       require 'dyntask'
       task={cmd: :pandoc, content: @content, filter: filter}
-      task[:source]="%"+@basename+".tex" if filter=="tex2docx"
+      task[:source]="%"+@basename+".tex" if ["tex2docx","tex2odt"].include? filter
       DynTask.add_task(task)
       DynTask.save_tasks(@basename)
     end
