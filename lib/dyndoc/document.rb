@@ -586,7 +586,7 @@ puts "make_all";p @cfg[:cmd]
       nb = @cfg[:options][:pdflatex_nb_pass] || @tmpl_doc.cfg[:options][:pdflatex_nb_pass] || 1
       if @cfg[:format_doc]==:tex
         require 'dyntask'
-        DynTask.add_task({cmd: :pdflatex, source: "%"+@basename+".tex", content: @content, nb_pass: nb, echo: echo})
+        DynTask.add_task({cmd: :pdflatex, source: "%"+@basename+".tex", content: @content.force_encoding("utf-8"), nb_pass: nb, echo: echo})
         DynTask.save_tasks(@basename)
       end
     end
@@ -594,7 +594,7 @@ puts "make_all";p @cfg[:cmd]
     def make_task_pandoc
       filter=@cfg[:format_doc].to_s + "2" + @cfg[:format_output].to_s
       require 'dyntask'
-      task={cmd: :pandoc, content: @content, filter: filter}
+      task={cmd: :pandoc, content: @content.force_encoding("utf-8"), filter: filter}
       task[:source]="%"+@basename+".tex" if ["tex2docx","tex2odt"].include? filter
       DynTask.add_task(task)
       DynTask.save_tasks(@basename)
