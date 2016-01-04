@@ -26,7 +26,7 @@ module Dyndoc
     def Docker.save_task_file
       File.open(@@task_file,"w") do |f|
         f << @@tasks.join(",")
-      end 
+      end
     end
 
   end
@@ -106,16 +106,16 @@ module Dyndoc
     @@cfg={
       :working_dir => "", #directory where dyndoc is processed
       :dyndoc_mode => :normal, #default mode, alternative modes :local_server, :remote_server
-      ## OBSOLETE: :docker_mode => false, 
+      ## OBSOLETE: :docker_mode => false,
       :filename_tmpl=>"", #be specified later
       :filename_tmpl_orig=>"", #be specified later
       :lib_dyn_content=>"",
-      :dirname_docs=>"", #default directory unless specified by doc! 
+      :dirname_docs=>"", #default directory unless specified by doc!
       :rootDoc=>"",
       :user_input=>[],
       :tag_tmpl=>[], #old part_tag!
       :keys_tmpl=>[],
-      :docs=>[], #this one is introduced from version V3 to deal with multidocuments 
+      :docs=>[], #this one is introduced from version V3 to deal with multidocuments
       :doc_list=>[], #list of documents if nonempty
       :cmd=>[], #list of commands if nonempty for every document
       :cmd_pandoc_options => [], #pandoc options
@@ -148,7 +148,7 @@ module Dyndoc
       ## the documents
       @docs={}
       make_doc_list
-      if @cfg[:content] #a non file based document is a Hash cfg with :content inside (give a basename used for generated files) 
+      if @cfg[:content] #a non file based document is a Hash cfg with :content inside (give a basename used for generated files)
         @content=@cfg[:content]
       else
         # find the basename of the template
@@ -173,8 +173,8 @@ module Dyndoc
     def read_cfg(name,mode=:all)
       # cfg_dyn is the options given inside the master template
       cfg_dyn=nil
-      
-       
+
+
       name_tmpl=Dyndoc.name_tmpl(name,mode)
 #Dyndoc.warn "read_cfg:name_tmpl",[name,name_tmpl]
       if name_tmpl
@@ -202,7 +202,7 @@ module Dyndoc
       #otherwise it is the default version!
       append_cfg(cfg_dyn) if cfg_dyn
       #read the optional cfg
-      read_cmdline     
+      read_cmdline
     end
 
     def lib_dyn_content_from(tmpl=nil)
@@ -248,7 +248,7 @@ module Dyndoc
       cfg_cmdline[:tag_tmpl]=Dyndoc.cfg_dyn[:tag_tmpl] unless Dyndoc.cfg_dyn[:tag_tmpl].empty?
       cfg_cmdline[:options]=Dyndoc.cfg_dyn[:options] unless Dyndoc.cfg_dyn[:options].empty?
       ## select doc_list by reading "[#default]" useful in atom
-      if !@cfg[:content] and Dyndoc.cfg_dyn[:doc_list].empty? and Dyndoc.cfg_dyn[:tag_tmpl].empty? 
+      if !@cfg[:content] and Dyndoc.cfg_dyn[:doc_list].empty? and Dyndoc.cfg_dyn[:tag_tmpl].empty?
         if File.read(@cfg[:filename_tmpl]).force_encoding("utf-8") =~ /^\[\#default\]([^\[]*)\[\#/
           cfg_cmdline[:doc_list]=$1.strip.split(",").map{|e| e.strip}
           puts "Default document: "+cfg_cmdline[:doc_list].join(",")
@@ -333,7 +333,7 @@ module Dyndoc
       :cmd_pandoc_options => [],
       :pandoc_filter => "",
       :filename_doc => "",
-      :created_docs => [], 
+      :created_docs => [],
       :dirname_doc=>"",
       :append_doc=>"",
       :tag_doc => [],
@@ -349,7 +349,7 @@ module Dyndoc
 
     include Dyndoc::DynConfig
 
-    # gather in @cfg optionnal parameters 
+    # gather in @cfg optionnal parameters
     # @content really matters to be included in @cfg!
 
     attr_accessor :tmpl_doc, :cfg, :content, :inputs
@@ -378,7 +378,7 @@ module Dyndoc
       p @tmpl_doc.cfg if @tmpl_doc.cfg[:debug]
       p [:cfg,@cfg] if @tmpl_doc.cfg[:debug]
       # autocomplete the document filename if necessary!
-      filename_completion 
+      filename_completion
       @filename = @cfg[:filename_doc]
       @dirname = @tmpl_doc.dirname_orig
     end
@@ -392,11 +392,11 @@ module Dyndoc
 
 =begin
     # do we have to save the content to some file
-    def to_be_saved? 
+    def to_be_saved?
       @cfg[:filename_doc]!=:no
     end
 =end
-    
+
     def filename_completion
 #p @tmpl_doc.basename_orig
 #p @cfg[:append_doc]
@@ -405,12 +405,12 @@ module Dyndoc
       if @tmpl_doc.basename_orig =~ /\_(html|tex|c|rb|txtl|md|txt|raw)$/
         @cfg[:cmd] += [:make_content,:save]
         ext_mode=$1.to_sym
-        @cfg[:format_doc]=@cfg[:mode_doc]=@cfg[:format_output]=(ext_mode == :raw ? :txt : ext_mode ) 
+        @cfg[:format_doc]=@cfg[:mode_doc]=@cfg[:format_output]=(ext_mode == :raw ? :txt : ext_mode )
         last=-(2 + $1.length)
       else
         last=-1
       end
-      ##DEBUG: 
+      ##DEBUG:
       p [@tmpl_doc.basename_orig[0..last],@tmpl_doc.cfg[:append],@cfg[:append_doc],@cfg[:format_doc],Dyndoc.docExt(ext_mode || @cfg[:format_doc])]
       @cfg[:filename_doc]=@tmpl_doc.basename_orig[0..last]+@tmpl_doc.cfg[:append]+@cfg[:append_doc]+Dyndoc.docExt(ext_mode || @cfg[:format_doc]) if @cfg[:filename_doc].empty?
       ##p [:filename_completion,@filename,@cfg[:filename_doc] ]
@@ -428,7 +428,7 @@ puts "make_all";p @cfg[:cmd]
       # First, save or rm (both is useless) the old file
       make_old(:save) if @cfg[:cmd].include? :save_old
       make_old(:rm)   if @cfg[:cmd].include? :rm_old
-      
+
       # make content
       make_content if @cfg[:cmd].include? :make_content
       ##OBSOLETE## @content=make_ttm if @cfg[:format_doc]==:ttm
@@ -501,13 +501,13 @@ puts "make_all";p @cfg[:cmd]
       end
     end
 
-    def init_doc 
+    def init_doc
       Dyndoc.mode=out=@cfg[:format_doc]
       unless @tmpl_doc.cfg[:raw_mode]
         if ( tmp=Dyndoc.doc_filename("Dyn/.preload",[""],nil))
           @cfg[:pre_doc] += File.read(tmp).split("\n").map{|l| l.split(",")}.flatten.map{|e| e.strip}
         end
-    
+
         if (tmp=Dyndoc.doc_filename("Dyn/.postload",[""],nil))
           @cfg[:post_doc] += File.read(tmp).split("\n").map{|l| l.split(",")}.flatten.map{|e| e.strip}
         end
@@ -533,7 +533,7 @@ puts "make_all";p @cfg[:cmd]
       # TO REMOVE: Dyndoc.mode=(out)
       # prepare the initialization of the TemplateManager
       @tmpl_doc.tmpl_mngr.init_doc(@cfg)
-    end 
+    end
 
     def cd_new
       Dir.chdir(@dirname)
@@ -550,7 +550,7 @@ puts "make_all";p @cfg[:cmd]
       @cfg[:raw_mode],@cfg[:model_tmpl]=false,nil
       init(@cfg[:output])
       @tmpl_doc.echo=echo
-      @tmpl_doc.reinit 
+      @tmpl_doc.reinit
       @tmpl_doc.output input
     end
 
@@ -559,7 +559,7 @@ puts "make_all";p @cfg[:cmd]
 # make content
    def make_content
       ## if true
-      if @tmpl_doc.cfg[:debug]
+      if @tmpl_doc.cfg[:debug] or Settings["cfg_dyn.debug"]
         @tmpl_doc.tmpl_mngr.echo=0
         @tmpl_doc.tmpl_mngr.doc=self
         ## p [:make_content,@tmpl_doc.content]
@@ -611,8 +611,8 @@ puts "make_all";p @cfg[:cmd]
       autostyles = @content_xml.root.elements['office:automatic-styles']
 #puts "autostyles";p autostyles
 #p @automatic_styles
-      # add the automatic styles from input template 
-      if autostyles 
+      # add the automatic styles from input template
+      if autostyles
         @inputs.values.each do |input|
           input.automatic_styles.each_element do |e|
             autostyles << e
@@ -621,7 +621,7 @@ puts "make_all";p @cfg[:cmd]
       end
     end
 
-    def make_odt_ressources 
+    def make_odt_ressources
       return if !@inputs or @inputs.empty?
       # create directories if necessary
       @ar.find_entry('ObjectReplacements') || @ar.mkdir('ObjectReplacements')
@@ -654,7 +654,7 @@ puts "make_all";p @cfg[:cmd]
     end
 =end
 
-    
+
     # As soon as possible when using dropbox or tools
     def make_old(mode=:rm) #mode=:rm or :save
       ## After introduction of dyntask, the default is to save the old file if existing
@@ -685,16 +685,16 @@ puts "make_all";p @cfg[:cmd]
 	      make_odt_ressources
 	      @ar.close
 	    else
-        ##p [:cfg,Dir.pwd,@dirname] 
+        ##p [:cfg,Dir.pwd,@dirname]
 	      print "\nsave content in #{@cfg[:filename_doc]} or #{@filename}"
         ##p [:make_save,@cfg[:cmd]]
 	      FileUtils.mkdir_p(File.dirname(@cfg[:filename_doc])) if @cfg[:cmd].include? :save!
-        
+
         ## if @content is nil => bad execution
-        if !@content 
+        if !@content
           FileUtils.mv(@filename_old,@filename) if @filename_old and File.exists? @filename_old
         else
-          ## Save new 
+          ## Save new
           File.open(@cfg[:filename_doc],"w") do |f|
   	        f << @content
   	      end
@@ -744,7 +744,7 @@ puts "make_all";p @cfg[:cmd]
         return ""
       end
       print "\n==> #{Dyndoc.pdflatex} #{@basename} in #{@dirname}"
-      # NEW: Not to be devkit dependent!!! 
+      # NEW: Not to be devkit dependent!!!
       # if RUBY_PLATFORM =~ /(win|w)32$/
       #   unless SOFTWARE[:taskkill]
       #       cmd = `which taskkill`.strip
@@ -756,14 +756,14 @@ puts "make_all";p @cfg[:cmd]
       # end
 
       out=`#{Dyndoc.pdflatex} -halt-on-error -file-line-error -interaction=nonstopmode #{@basename}`
-      out=out.b if RUBY_VERSION >= "1.9" #because out is not necessarily utf8 encoded  
+      out=out.b if RUBY_VERSION >= "1.9" #because out is not necessarily utf8 encoded
       out=out.split("\n")
       puts out if echo_mode
       if out[-2].include? "Fatal error"
         if Dyndoc.cfg_dyn[:dyndoc_mode]==:normal
           print " -> NOT OKAY!!!\n==> "
           puts out[-4...-1]
-          raise SystemExit 
+          raise SystemExit
         else
           # File.open("#{@dirname}/#{@basename}.dyn_log","w") do |f|
           #   f << out[-4...-1]
@@ -772,7 +772,7 @@ puts "make_all";p @cfg[:cmd]
           $dyn_logger.write("ERROR pdflatex: "+out[-4...-1].to_s+"\n") if $dyn_logger
           @cfg[:created_docs] << @basename+".log"
         end
-      else 
+      else
         print " -> OKAY!!!\n"
         @cfg[:created_docs] << @basename+".pdf" #( @dirname.empty? ? "" : @dirname+"/" ) + @basename+".pdf"
       end
@@ -784,7 +784,7 @@ puts "make_all";p @cfg[:cmd]
       make_dvipng if @cfg[:format_doc]==:tex
     end
 
-# make latex and dvipng 
+# make latex and dvipng
     def make_dvipng
         system "latex #{@basename}.tex"
         print "\nlatex #{@basename}.tex -> ok\n"
@@ -801,8 +801,8 @@ puts "make_all";p @cfg[:cmd]
 
 # make view
     def make_view
-      make_viewpdf if @cfg[:cmd].include? :pdf 
-      make_viewpng if @cfg[:cmd].include? :png 
+      make_viewpdf if @cfg[:cmd].include? :pdf
+      make_viewpng if @cfg[:cmd].include? :png
     end
 
 
@@ -823,7 +823,7 @@ puts "make_all";p @cfg[:cmd]
           cmd = `which #{@tmpl_doc.cfg[:pdfviewer]}`.strip
           SOFTWARE[:pdfviewer]=cmd unless cmd.empty?
         end
-      end   
+      end
       if SOFTWARE[:pdfviewer]
         if SOFTWARE[:pdfviewer]=="xpdf"
   ##test xpdf is  already open
@@ -851,7 +851,7 @@ puts "make_all";p @cfg[:cmd]
     end
 
 =end
-    
+
 # TODO: TO UPDATE!!!! file ############################################
 # file tex
     def tex(name)
