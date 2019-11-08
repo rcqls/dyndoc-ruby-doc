@@ -55,6 +55,7 @@ module Dyndoc
           @cfg[k2.to_sym]=cfg[k]
         end
       end
+      ## puts "append_cfg";p @cfg
     end
 
     def [](key)
@@ -126,9 +127,11 @@ module Dyndoc
       :raw_mode=>false,
       :model_tmpl=>"default",
       :model_doc=>"default",
+      :exec_mode=>"no",
       :append => "",
       :verbose => false,
-      :debug => false
+      :debug => false,
+      :ruby_only => false
     }
 
 
@@ -245,6 +248,7 @@ module Dyndoc
       cfg_cmdline[:doc_list]=Dyndoc.cfg_dyn[:doc_list] unless Dyndoc.cfg_dyn[:doc_list].empty?
       cfg_cmdline[:cmd]=Dyndoc.cfg_dyn[:cmd_doc] unless Dyndoc.cfg_dyn[:cmd_doc].empty?
       cfg_cmdline[:model_doc]=Dyndoc.cfg_dyn[:model_doc] unless Dyndoc.cfg_dyn[:model_doc].empty?
+      cfg_cmdline[:exec_mode]=Dyndoc.cfg_dyn[:exec_mode] if Dyndoc.cfg_dyn[:exec_mode] and !Dyndoc.cfg_dyn[:exec_mode].empty?
       cfg_cmdline[:tag_tmpl]=Dyndoc.cfg_dyn[:tag_tmpl] unless Dyndoc.cfg_dyn[:tag_tmpl].empty?
       cfg_cmdline[:options]=Dyndoc.cfg_dyn[:options] unless Dyndoc.cfg_dyn[:options].empty?
       ## select doc_list by reading "[#default]" useful in atom
@@ -327,6 +331,7 @@ module Dyndoc
       :mode_doc => :tex, #execution mode
       :rootDoc=>"",
       :model_doc=>"default",
+      :exec_mode=>"no",
       :pre_doc=>[],
       :post_doc=>[],
       :cmd=> [], # :save , :cat, :pdf or :png, :view behaving differently depending on the format_doc
@@ -420,8 +425,7 @@ module Dyndoc
     def make_all
 #puts "make_all";p @cfg[:cmd]
       make_prelim
-#
-puts "make_all";p @cfg[:cmd]
+#puts "make_all";p @cfg[:cmd]
       cd_new
       open_log
 
@@ -432,7 +436,8 @@ puts "make_all";p @cfg[:cmd]
       # make content
       make_content if @cfg[:cmd].include? :make_content
       ##OBSOLETE## @content=make_ttm if @cfg[:format_doc]==:ttm
-#puts "make_all";p @cfg[:cmd]
+      @cfg[:cmd] -= [:save] if Dyndoc.cfg_dyn[:exec_mode]=="yes"
+      #puts "make_all";p [@cfg[:cmd],Dyndoc.cfg_dyn[:exec_mode]]
       make_save unless (@cfg[:cmd] & [:save,:save!]).empty?
       ##OBSOLETE## make_pandoc if @cfg[:cmd].include? :pandoc
       ##OBSOLETE## make_backup if @cfg[:cmd].include? :backup

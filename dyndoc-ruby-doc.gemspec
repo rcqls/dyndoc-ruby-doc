@@ -2,7 +2,7 @@ require 'rubygems'
 require 'rubygems/package_task'
 
 pkg_NAME='dyndoc-ruby-doc'
-pkg_VERSION='1.0.0'
+pkg_VERSION='1.1.1'
 
 pkg_FILES=FileList[
     'lib/dyndoc/**/*.rb'
@@ -13,7 +13,7 @@ spec = Gem::Specification.new do |s|
     s.summary = "dyndoc document"
     s.name = pkg_NAME
     s.version = pkg_VERSION
-    s.licenses = ['MIT', 'GPL-2']
+    s.licenses = ['MIT', 'GPL-2.0']
     s.requirements << 'none'
     s.require_path = 'lib'
     s.files = pkg_FILES.to_a
