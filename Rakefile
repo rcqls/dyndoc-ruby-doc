@@ -23,7 +23,6 @@ spec = Gem::Specification.new do |s|
     s.author = "CQLS"
     s.email= "rdrouilh@gmail.com"
     s.homepage = "http://cqls.upmf-grenoble.fr"
-    s.rubyforge_project = nil
 end
 
 ## this allows to produce some parameter for task like  Gem::PackageTask (without additional argument!)

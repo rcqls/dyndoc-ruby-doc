@@ -69,9 +69,9 @@ module Dyndoc
 
   end
 
-  EMPTY_ODT=File.join(ENV["HOME"],"dyndoc","share","odt","2004","empty.odt") if File.exists? File.join(ENV["HOME"],"dyndoc","share","odt","2004","empty.odt")
-  EMPTY_ODT=File.join($dyn_gem_root,"share","odt","2004","emptyTex4Ht.odt") if $dyn_gem_root and File.exists? File.join($dyn_gem_root,"share","odt","2004","empty.odt")
-  EMPTY_ODT=File.join("/export/prjCqls","share","rsrc","dyndoc","odt","2004","empty.odt") if  File.exists? File.join("/export/prjCqls","share","rsrc","dyndoc","odt","2004","empty.odt")
+  EMPTY_ODT=File.join(ENV["HOME"],"dyndoc","share","odt","2004","empty.odt") if File.exist? File.join(ENV["HOME"],"dyndoc","share","odt","2004","empty.odt")
+  EMPTY_ODT=File.join($dyn_gem_root,"share","odt","2004","emptyTex4Ht.odt") if $dyn_gem_root and File.exist? File.join($dyn_gem_root,"share","odt","2004","empty.odt")
+  EMPTY_ODT=File.join("/export/prjCqls","share","rsrc","dyndoc","odt","2004","empty.odt") if  File.exist? File.join("/export/prjCqls","share","rsrc","dyndoc","odt","2004","empty.odt")
 
   #just for a shortcut
   TexDoc={
@@ -210,7 +210,7 @@ module Dyndoc
 
     def lib_dyn_content_from(tmpl=nil)
       code,lib_file = "",nil
-      code=File.read(lib_file) if (lib_file=(Dyndoc::Utils.lib_file_exists? tmpl))
+      code=File.read(lib_file) if (lib_file=(Dyndoc::Utils.lib_file_exist? tmpl))
       return code
     end
 
@@ -235,7 +235,7 @@ module Dyndoc
 
     def cfg_dyn_from(tmpl)
       code,cfg_file=nil,nil
-      code=File.read(cfg_file) if (cfg_file=(Dyndoc::Utils.cfg_file_exists? tmpl))
+      code=File.read(cfg_file) if (cfg_file=(Dyndoc::Utils.cfg_file_exist? tmpl))
       ##puts "code";p code;p cfg_file
       Utils.clean_bom_utf8!(code) if code
       code="Dyndoc::TexDoc" unless code
@@ -482,7 +482,7 @@ module Dyndoc
 =begin
       # read current path if it exists
       cur_path=File.join(@dirname,".dyn_path")
-      Dyndoc.setRootDoc(@cfg[:rootDoc],File.read(cur_path).chomp,true) if File.exists? cur_path
+      Dyndoc.setRootDoc(@cfg[:rootDoc],File.read(cur_path).chomp,true) if File.exist? cur_path
       Dyndoc.make_append unless Dyndoc.appendVar
 =end
     #p "ici";p @cfg
@@ -663,7 +663,7 @@ module Dyndoc
     # As soon as possible when using dropbox or tools
     def make_old(mode=:rm) #mode=:rm or :save
       ## After introduction of dyntask, the default is to save the old file if existing
-      if File.exists? @filename
+      if File.exist? @filename
         case mode
         when :save
           FileUtils.mkdir_p(File.join(File.dirname(@filename),".save"))
@@ -680,7 +680,7 @@ module Dyndoc
 	      #before saving: make automatic styles!
 	      make_odt_content_xml
 	      make_odt_automatic_styles
-	      FileUtils.cp(EMPTY_ODT,@cfg[:filename_doc]) unless File.exists? @cfg[:filename_doc]
+	      FileUtils.cp(EMPTY_ODT,@cfg[:filename_doc]) unless File.exist? @cfg[:filename_doc]
         require  'zip'
         @ar=Zip::ZipFile.open(@cfg[:filename_doc])
         @ar.get_output_stream('content.xml') do |f|
@@ -697,7 +697,7 @@ module Dyndoc
 
         ## if @content is nil => bad execution
         if !@content
-          FileUtils.mv(@filename_old,@filename) if @filename_old and File.exists? @filename_old
+          FileUtils.mv(@filename_old,@filename) if @filename_old and File.exist? @filename_old
         else
           ## Save new
           File.open(@cfg[:filename_doc],"w") do |f|
